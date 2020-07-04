@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html charset="utf-8">
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <link rel="icon" type="image/png" href="/static/favicon.ico">
+        <title>Bots</title>
+        <style>
+        </style>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+        
+    </head>
+    <body>
+        <form id="botConfigForm" action="">
+            <label for="assetID">moeda:</label>
+            <input id="assetID" name="assetID" type="text" />
+            <br/>
+            <label for="index">indice:</label>
+            <input id="index" name="index" type="text" />
+            <br/>
+            <label for="direction">direção (over/under):</label>
+            <input id="direction" name="direction" type="text" />
+            <br/>
+            <label for="prediction">prediction (%):</label>
+            <input id="prediction" name="perdiction" type="text" />
+            <br/>
+            <label for="goal">meta:</label>
+            <input id="goal" name="goal" type="text" />
+            <br/>
+            <label for="betInitial">bet inicial:</label>
+            <input id="betInitial" name="betInitial" type="text" />
+            <br/>
+            <label for="initialAmount">saldo inicial:</label>
+            <input id="initialAmount" name="initialAmount" type="text" />
+            <br/>
+            <label for="running">running:</label>
+            <input id="running" name="running" type="text" />
+            <br/>
+            <br/>
+            <input type="submit" value="atualizar" />
+        </form>
+        <hr/>
+        <h2>Send:</h2>
+        <form id="threadsForm" action="">
+            <input type="submit" value="Abre thread">
+        </form>
+        <span id="testResponse"></span>
+        <span id="threadResponse"></span>
+        <hr/>
+        <form id="inputForm">
+            <input id="input" type="text" />
+            <input type="submit" value="Send" />
+        </form>
+        <div id="stream"></div>
+
+        <script type="module">
+
+            import createApp from '/static/app.js'
+            const app = createApp()
+
+            var domInput, domStream
+            
+            const domInputForm = document.getElementById('inputForm')
+            domInputForm.addEventListener('submit', onSubmit, false)
+            domInput = document.getElementById('input')
+            domStream = document.getElementById('stream')
+
+        
+            const botConfigForm = document.getElementById("botConfigForm")
+            botConfigForm.addEventListener("submit", updateConfig)
+
+            const threadsForm = document.getElementById("threadsForm")
+            threadsForm.addEventListener("submit", startTestThread)
+
+            const testResponse = document.getElementById("testResponse")
+
+            const threadResponse = document.getElementById("threadResponse")
+        
+            const socket = app.initSocketIO(document.domain, location.port)
+            socketioConfig()
+
+            function createMessageDOM(text) {
+                var line
+                line = document.createElement('p')
+                line.appendChild(document.createTextNode(text))
+                return line
+            }
+
+            function showMsg(msg) {
+                domStream.insertBefore(createMessageDOM(msg), domStream.firstChild)
+            }
+
+            function sendMessage(msg) {
+                socket.emit('send-msg', msg)
+            }
+
+            function onSubmit(evt) {
+                if (domInput && domInput.value != '') {
+                    sendMessage(domInput.value)
+                    domInput.value = ''
+                }
+                evt.preventDefault()
+                return false
+            }
+            
+            //meu codigo
+            function handleTestResponse(message) {
+                console.log(`recebi resposta ${JSON.stringify(message, null, 2)}`)
+                testResponse.innerHTML = message
+            }
+
+            function handleThreadResponse(message) {
+                console.log(`Thread me mandou msg`)
+                threadResponse.innerHTML = message
+            }
+            
+            function startTestThread(event) {
+                // evitando que a submissão do form recarregue a página
+                event.preventDefault()
+
+                console.log("Chamando Socket Server> start thread...")
+
+                socket.emit('send-command', { command: 'commando!'})
+                
+                return false
+            }
+
+            function updateConfig(botConfigForm) {
+                // evitando que a submissão do form recarregue a página
+                botConfigForm.preventDefault()
+
+                // recuperando elementos de tela
+                const assetID = document.getElementById("assetID").value
+                const index = document.getElementById("index").value
+                const direction = document.getElementById("direction").value
+                const prediction = document.getElementById("prediction").value
+                const goal = document.getElementById("goal").value
+                const initialAmount = document.getElementById("initialAmount").value
+                const betInitial = document.getElementById("betInitial").value
+                const running = document.getElementById("running").value
+
+                const command = {
+                    bot: {
+                        command: {
+                            exec: 'updateConfig',
+                            param: {
+                                running: running,
+                                betInitial: betInitial,
+                                initialAmount: initialAmount,
+                                direction: direction,
+                                prediction: prediction,
+                                goal: goal,
+                                index: index,
+                                assetID: assetID,
+                            }
+                        }
+                    },
+                }
+                socket.emit('send-command', command)
+                return false
+            }
+
+            function socketioConfig() {
+                socket.on('show-msg', showMsg)
+                socket.on('testResponse', handleTestResponse)
+                socket.on('thread-test', handleThreadResponse)
+            }
+
+        </script>
+    </body>
+</html>
