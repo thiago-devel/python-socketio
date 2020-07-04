@@ -1,35 +1,53 @@
-from aiohttp import web
-import socketio
+#!/usr/bin/env python
 
-sio = socketio.AsyncServer()
-app = web.Application()
-sio.attach(app)
+import os
+from flask import Flask, render_template
+from flask_socketio import SocketIO, emit
+from thread import BotThread
+from datetime import datetime
 
-async def index(request):
-    """Serve the client-side application."""
-    with open('index.html') as f:
-        return web.Response(text=f.read(), content_type='text/html')
 
-@sio.event
-def connect(sid, environ):
-    print("connect ", sid)
+import time
+from threading import Lock
 
-@sio.event
-async def my_event(sid, message):
-    print("message ", message)
-    await sio.emit('my_response', {'data': message['data']}, room=sid)
+async_mode = None
 
-@sio.event
-async def chat_message(sid, data):
-    print("message ", data)
-    await sio.emit('reply', room=sid)
+app = Flask(__name__)
+app.secret_key = os.urandom(48)
+app.debug = True
 
-@sio.event
-def disconnect(sid):
-    print('disconnect ', sid)
+socketio = SocketIO(app, async_mode=async_mode)
 
-app.router.add_static('/static', 'static')
-app.router.add_get('/', index)
+@app.route('/')
+def index():
+    return render_template('index.html', async_mode=socketio.async_mode)
+
+@socketio.on('send-msg')
+def handle_message(msg):
+    emit('show-msg', msg, broadcast=True)
+    return None
+
+@socketio.on('send-command')
+def handle_send_message(msg):
+    print('>>>>>>>>>>>>>')
+    print(msg)
+    print('<<<<<<<<<<<<<')
+
+    print('>>>>>>>>>>>>>')
+    print('criando thread...')
+    BetBotThread(socketio)
+    print('<<<<<<<<<<<<<')
+
+    now = datetime.now()
+    emit('testResponse', 'oi :) Recebi seu comando em: {}'.format(now.strftime("%Y-%m-%d %H:%M:%S")), broadcast=True)
+    return None
+
+def run():
+    start_time = time.time()
+    print('> iniciando bot')
+    time.sleep(2)
+    duration = time.time() - start_time
+    print('> bot encerrado. Gastou [{}] secs.'.format(duration))
 
 if __name__ == '__main__':
-    web.run_app(app)
+    socketio.run(app)
