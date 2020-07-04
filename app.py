@@ -35,19 +35,12 @@ def handle_send_message(msg):
 
     print('>>>>>>>>>>>>>')
     print('criando thread...')
-    BetBotThread(socketio)
+    BotThread(socketio)
     print('<<<<<<<<<<<<<')
 
     now = datetime.now()
     emit('testResponse', 'oi :) Recebi seu comando em: {}'.format(now.strftime("%Y-%m-%d %H:%M:%S")), broadcast=True)
     return None
-
-def run():
-    start_time = time.time()
-    print('> iniciando bot')
-    time.sleep(2)
-    duration = time.time() - start_time
-    print('> bot encerrado. Gastou [{}] secs.'.format(duration))
 
 if __name__ == '__main__':
     socketio.run(app)
