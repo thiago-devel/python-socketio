@@ -12,7 +12,7 @@ https://python-socketio.readthedocs.io/en/latest/intro.html#server-examples
 set APP_SETTINGS=config.DevelopmentConfig
 
 
-
+# virtual envs on Windows...
 mkvirtualenv python-socketio
 
 workon python-socketio
@@ -23,7 +23,9 @@ deactivate
 
 
 python -m pip install flask-socketio eventlet
+
 python -m pip freeze > requirements.txt
+
 python -m pip install -r requirements.txt
 
 
