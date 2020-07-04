@@ -14,34 +14,6 @@
         
     </head>
     <body>
-        <form id="botConfigForm" action="">
-            <label for="assetID">moeda:</label>
-            <input id="assetID" name="assetID" type="text" />
-            <br/>
-            <label for="index">indice:</label>
-            <input id="index" name="index" type="text" />
-            <br/>
-            <label for="direction">direção (over/under):</label>
-            <input id="direction" name="direction" type="text" />
-            <br/>
-            <label for="prediction">prediction (%):</label>
-            <input id="prediction" name="perdiction" type="text" />
-            <br/>
-            <label for="goal">meta:</label>
-            <input id="goal" name="goal" type="text" />
-            <br/>
-            <label for="betInitial">bet inicial:</label>
-            <input id="betInitial" name="betInitial" type="text" />
-            <br/>
-            <label for="initialAmount">saldo inicial:</label>
-            <input id="initialAmount" name="initialAmount" type="text" />
-            <br/>
-            <label for="running">running:</label>
-            <input id="running" name="running" type="text" />
-            <br/>
-            <br/>
-            <input type="submit" value="atualizar" />
-        </form>
         <hr/>
         <h2>Send:</h2>
         <form id="threadsForm" action="">
@@ -67,10 +39,6 @@
             domInputForm.addEventListener('submit', onSubmit, false)
             domInput = document.getElementById('input')
             domStream = document.getElementById('stream')
-
-        
-            const botConfigForm = document.getElementById("botConfigForm")
-            botConfigForm.addEventListener("submit", updateConfig)
 
             const threadsForm = document.getElementById("threadsForm")
             threadsForm.addEventListener("submit", startTestThread)
@@ -106,9 +74,8 @@
                 return false
             }
             
-            //meu codigo
             function handleTestResponse(message) {
-                console.log(`recebi resposta ${JSON.stringify(message, null, 2)}`)
+                console.log(`response ${JSON.stringify(message, null, 2)}`)
                 testResponse.innerHTML = message
             }
 
@@ -118,10 +85,10 @@
             }
             
             function startTestThread(event) {
-                // evitando que a submissão do form recarregue a página
+                // avoid page submission
                 event.preventDefault()
 
-                console.log("Chamando Socket Server> start thread...")
+                console.log("Call Socket Server> start thread...")
 
                 socket.emit('send-command', { command: 'commando!'})
                 
@@ -129,35 +96,10 @@
             }
 
             function updateConfig(botConfigForm) {
-                // evitando que a submissão do form recarregue a página
+                // avoid page submission
                 botConfigForm.preventDefault()
 
-                // recuperando elementos de tela
-                const assetID = document.getElementById("assetID").value
-                const index = document.getElementById("index").value
-                const direction = document.getElementById("direction").value
-                const prediction = document.getElementById("prediction").value
-                const goal = document.getElementById("goal").value
-                const initialAmount = document.getElementById("initialAmount").value
-                const betInitial = document.getElementById("betInitial").value
-                const running = document.getElementById("running").value
-
                 const command = {
-                    bot: {
-                        command: {
-                            exec: 'updateConfig',
-                            param: {
-                                running: running,
-                                betInitial: betInitial,
-                                initialAmount: initialAmount,
-                                direction: direction,
-                                prediction: prediction,
-                                goal: goal,
-                                index: index,
-                                assetID: assetID,
-                            }
-                        }
-                    },
                 }
                 socket.emit('send-command', command)
                 return false
